@@ -1,6 +1,7 @@
 require 'httparty'
 require 'base64'
 require 'crack'
+require "erb"
 
 class SimpleNote
   include HTTParty
@@ -27,6 +28,20 @@ class SimpleNote
 
   def search(search_string, max_results=10)
     self.class.get "/search", :query => request_hash.merge(:query => search_string, :results => max_results)
+  end
+
+  def create_note(note)
+    self.class.post("/note", 
+      :query => request_hash.merge(:modify => ERB::Util.url_encode(Time.now.strftime("%Y-%m-%d %H:%M:%S"))), 
+      :body => Base64.encode64(note))
+  end
+    
+  def update_note(key, note)
+    self.class.post("/note", 
+      :query => request_hash.merge(
+                  :modify => ERB::Util.url_encode(Time.now.strftime("%Y-%m-%d %H:%M:%S")),
+                  :key => key), 
+      :body => Base64.encode64(note))
   end
 
   private
